@@ -1,0 +1,20 @@
+{
+  "name": "tackle-ticket",
+  "version": "0.1.0",
+  "description": "End-to-end ticket workflow: fetch ticket → plan → branch → code + tests → multi-model review loop (Opus + Sonnet + Haiku + Codex) → open PR. Generic and config-driven; run /tackle-setup once per repo. Bundles a caveman-derived terse mode to cut review output tokens.",
+  "author": {
+    "name": "Juan Lucas"
+  },
+  "license": "MIT",
+  "keywords": [
+    "jira",
+    "github",
+    "tickets",
+    "workflow",
+    "code-review",
+    "multi-agent",
+    "codex",
+    "pull-request",
+    "token-optimization"
+  ]
+}
