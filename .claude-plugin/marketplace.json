@@ -3,14 +3,16 @@
   "name": "tackle-ticket",
   "description": "Ticket-to-PR workflow plugin with a multi-model review loop.",
   "owner": {
-    "name": "Juan Lucas"
+    "name": "juanlu-a",
+    "url": "https://github.com/juanlu-a"
   },
   "plugins": [
     {
       "name": "tackle-ticket",
       "description": "End-to-end ticket workflow: fetch ticket → plan → branch → code + tests → multi-model review loop (Opus + Sonnet + Haiku + Codex) → open PR. Config-driven via /tackle-setup; bundles a caveman-derived terse mode.",
       "author": {
-        "name": "Juan Lucas"
+        "name": "juanlu-a",
+        "url": "https://github.com/juanlu-a"
       },
       "category": "workflow",
       "source": "./"
