@@ -23,12 +23,25 @@ Follow these steps in order.
 
 ## 3. Branch from the base branch
 
+Right after the plan is approved, **ask the user whether to work in a git worktree** (so several tickets can run in parallel without stashing). One question, two options: worktree, or plain branch in the current checkout. Default to worktree when the working tree already has uncommitted changes.
+
+**If yes — worktree:**
+
+```bash
+git fetch origin
+git worktree add -b <branchNaming> <worktreeDir>/<branchNaming> origin/<baseBranch>
+```
+
+`worktreeDir` comes from the config (default: `../<repo-name>-worktrees`). Then run every later step from that path. Tell the user the worktree path. Install deps there if the repo needs it (e.g. `pnpm install`) — symlinked/hoisted node_modules do not carry over. Do **not** remove the worktree at the end; leave it for the user (mention `git worktree remove <path>` once the PR is merged).
+
+**If no — plain branch:**
+
 ```bash
 git checkout <baseBranch> && git pull
 git checkout -b <branchNaming>    # e.g. CSD-1234-short-slug ; quickfix-<slug> if no ticket
 ```
 
-Use the config's `baseBranch` and `branchNaming`. Respect any repo-specific exception in the conventions doc (e.g. mobile branch cascades).
+Either way use the config's `baseBranch` and `branchNaming`. Respect any repo-specific exception in the conventions doc (e.g. mobile branch cascades).
 
 ## 4. Implement with tests
 
@@ -80,9 +93,29 @@ Only after the above pass. Commit with the repo's convention (e.g. conventional 
 gh pr create --base <prBase> --title "<prTitleFormat>" --body "...<prFooter>"
 ```
 
-## 8. Local test steps
+## 8. Manual QA checklist
 
-Give brief, exact steps to verify the change locally (commands to run, route/URL to hit, what to look for). Concise.
+Print the PR URL prominently, then give the user a short manual-QA list — what a human needs to click through, since automated tests already covered the rest.
+
+Format: how to get the app running (commands + the exact route/URL, plus the worktree path if one was used), then a numbered checklist. Each item = one action → one expected result. Derive them from the ticket's acceptance criteria and the actual diff.
+
+Keep it tight:
+- 3–8 items. If the diff genuinely warrants more, still cap it at 8 and pick the highest-risk ones.
+- Only what needs human eyes: UI/visual, flows across screens, real data, permissions/roles, i18n, things the tests can't assert.
+- Skip anything a test already asserts.
+- Include edge cases the ticket calls out, and 1 regression check on the nearest untouched behavior the change could break.
+- No preamble, no test-plan template, no severity labels.
+
+Example shape:
+
+```
+Run: pnpm dev  (from ../repo-worktrees/CSD-1234-slug) → http://localhost:3000/sessions/<id>
+
+1. Open a session with a titration med → schedule table renders, day 1 = created + 1.
+2. Delete the last stage → save → reopen: stage stays gone.
+3. Switch to Spanish → all new labels translated, no raw keys.
+4. Open a session with no titration → unchanged, no empty table.
+```
 
 ---
 

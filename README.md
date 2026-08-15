@@ -2,7 +2,9 @@
 
 A Claude Code plugin that takes a ticket from key to PR:
 
-**fetch ticket → plan + ask → branch → code + tests → multi-model review loop → open PR.**
+**fetch ticket → plan + ask → branch (optionally in a worktree) → code + tests → multi-model review loop → open PR → manual-QA checklist.**
+
+It asks per ticket whether to work in a git worktree, so you can run several tickets in parallel without stashing, and it finishes by handing you a short list of the manual checks worth doing on top of the automated tests.
 
 After coding, it fans out **four read-only reviewers in parallel** — Opus, Sonnet, and Haiku subagents plus [Codex](https://github.com/openai/codex) (`codex exec`, if installed) — synthesizes their findings, applies fixes, and **loops until a review round is clean** (with a safety cap). Reviewers report only; the main agent applies corrections, so there are no conflicting parallel edits.
 

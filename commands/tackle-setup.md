@@ -34,6 +34,7 @@ Shape:
   "baseBranch": "staging",
   "branchNaming": "{KEY}-{slug}",
   "quickfixNaming": "quickfix-{slug}",
+  "worktreeDir": "../{repo}-worktrees",     // where /tackle-ticket puts worktrees when the user opts in
   "testCmds": ["pnpm test"],
   "lintCmd": "pnpm lint",
   "typecheckCmd": "pnpm tsc",
@@ -57,7 +58,7 @@ For a `github` provider use:
 "ticketSearchCmd": "gh issue list --search \"{QUERY}\""
 ```
 
-Placeholders `{KEY}`, `{QUERY}`, `{slug}`, `{summary}` are substituted by `/tackle-ticket` at run time.
+Placeholders `{KEY}`, `{QUERY}`, `{slug}`, `{summary}`, `{repo}` are substituted by `/tackle-ticket` at run time.
 
 ## 4. Verify
 
