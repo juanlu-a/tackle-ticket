@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "tackle-ticket",
-      "description": "End-to-end ticket workflow: fetch ticket → plan → branch → code + tests → multi-model review loop (Opus + Sonnet + Haiku + Codex) → open PR. Config-driven via /tackle-setup; bundles a caveman-derived terse mode.",
+      "description": "End-to-end ticket workflow: fetch ticket → plan → branch → code + tests → multi-model review loop (Opus + Sonnet + Haiku + Codex) → open PR. /tackle-review runs just the review loop on any diff, with no ticket system. Config-driven via /tackle-setup; bundles a caveman-derived terse mode.",
       "author": {
         "name": "juanlu-a",
         "url": "https://github.com/juanlu-a"

@@ -1,6 +1,6 @@
 {
   "name": "tackle-ticket",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "End-to-end ticket workflow: fetch ticket -> plan -> branch -> code + tests -> multi-model review loop (Opus + Sonnet + Haiku + Codex) -> open PR. /tackle-review runs just the review loop on the current diff, with no ticket system. Generic and config-driven; run /tackle-setup once per repo. Bundles a caveman-derived terse mode to cut review output tokens.",
   "author": {
     "name": "juanlu-a",
