@@ -16,6 +16,7 @@ It's **generic and config-driven**: run `/tackle-setup` once per repo to detect 
 | --- | --- |
 | `/tackle-setup` | Detect this repo's conventions and write `.claude/tackle-ticket.json`. Run once per repo (idempotent). |
 | `/tackle-ticket <KEY \| description>` | Run the full workflow for a ticket. |
+| `/tackle-review [base \| PR# \| description]` | Just the multi-model review loop, on the current diff. No ticket system needed, and works without config. |
 
 ## Install
 
