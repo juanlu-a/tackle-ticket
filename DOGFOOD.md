@@ -10,6 +10,7 @@ Log each real run: what worked, what felt clunky, anything that broke. Rough is 
 - [ ] **Correctness** — all 4 reviewers actually fire; model overrides land on the right models; Codex read-only never edits; loop terminates and respects the cap.
 - [ ] **Token cost** — terse-mode meaningfully cuts review output; context stays diff-scoped.
 - [ ] **Config UX** — `/tackle-setup` detection is accurate; missing-config and missing-Codex paths degrade gracefully.
+- [ ] **Codex failures**: a custom `codexCmd` is used. A Codex that runs but errors or times out is surfaced in the synthesis and dropped for the rest of the loop, and the round is never reported clean without saying so.
 - [ ] **Docs/demo** — README has a real before/after + a short recording/GIF for the post.
 - [ ] **Robustness** — sensible behavior on: no ticket found, dirty working tree, lint/tsc failures, empty diff.
 

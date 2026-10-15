@@ -6,7 +6,7 @@ A Claude Code plugin that takes a ticket from key to PR:
 
 It asks per ticket whether to work in a git worktree, so you can run several tickets in parallel without stashing, and it finishes by handing you a short list of the manual checks worth doing on top of the automated tests.
 
-After coding, it fans out **four read-only reviewers in parallel** — Opus, Sonnet, and Haiku subagents plus [Codex](https://github.com/openai/codex) (`codex exec`, if installed) — synthesizes their findings, applies fixes, and **loops until a review round is clean** (with a safety cap). Reviewers report only; the main agent applies corrections, so there are no conflicting parallel edits.
+After coding, it fans out **four read-only reviewers in parallel** — Opus, Sonnet, and Haiku subagents plus [Codex](https://github.com/openai/codex) (via `codexCmd`, default `codex exec`, if available) — synthesizes their findings, applies fixes, and **loops until a review round is clean** (with a safety cap). Reviewers report only; the main agent applies corrections, so there are no conflicting parallel edits.
 
 It's **generic and config-driven**: run `/tackle-setup` once per repo to detect your ticket system (Jira or GitHub Issues), base branch, branch-naming, test/lint/typecheck commands, and PR conventions into `.claude/tackle-ticket.json`. The plugin stays project-agnostic; the config makes it yours.
 
@@ -34,7 +34,7 @@ Then, in each repo you want to use it in:
 ### Requirements
 
 - A ticket CLI: [`jira`](https://github.com/ankitpokhrel/jira-cli) (Jira) or [`gh`](https://cli.github.com/) (GitHub Issues) + `gh` for PRs.
-- Optional: [Codex CLI](https://github.com/openai/codex) for the 4th reviewer. If absent, the three model reviewers still run.
+- Optional: [Codex CLI](https://github.com/openai/codex) for the 4th reviewer. If absent, the three model reviewers still run. Set `codexCmd` in the config when the `codex` on PATH is not the one to use: for example, the Codex.app-bundled binary can lag behind the account's default model and fail with "model is not supported", and `"codexCmd": "npx -y @openai/codex@<version>"` fixes it. `/tackle-setup` detects this and sets it for you.
 
 ## Token optimization (terse mode)
 
