@@ -46,6 +46,7 @@ Shape:
   "conventionsDoc": "CLAUDE.md",
   "reviewModels": ["opus", "sonnet", "haiku"],
   "useCodex": true,
+  "codexCmd": "codex",
   "terseMode": true,
   "reviewLoopCap": 4
 }
@@ -58,11 +59,15 @@ For a `github` provider use:
 "ticketSearchCmd": "gh issue list --search \"{QUERY}\""
 ```
 
-Placeholders `{KEY}`, `{QUERY}`, `{slug}`, `{summary}`, `{repo}` are substituted by `/tackle-ticket` at run time.
+Placeholders `{KEY}`, `{QUERY}`, `{slug}`, `{summary}`, `{repo}` are substituted by `/tackle-ticket` at run time. `codexCmd` is the binary or full command the Codex reviewer runs (`{codexCmd}` in the commands); see step 4. It is substituted as-is, so quote a path that contains spaces (e.g. `\"/Applications/My Tools/codex\"`). Write the file as plain JSON, without the `//` comments shown above.
 
 ## 4. Verify
 
-- `useCodex`: check `command -v codex`. If absent, set `"useCodex": false` and note it (Codex reviewer is skipped, the 3 model reviewers still run).
+- `useCodex` / `codexCmd`: smoke-test with `rm -f <tmp>/codex-ok.txt; <cmd> exec -s read-only --skip-git-repo-check -o <tmp>/codex-ok.txt "Reply with the single word OK." < /dev/null 2>&1` (keep the `< /dev/null`; without it `codex exec` waits on stdin and hangs) and a 600000 ms Bash timeout. It **passes** only if it exits 0 and `<tmp>/codex-ok.txt`, trimmed, is exactly `OK`. Don't check the console for `OK`: Codex echoes the prompt there, so it always matches.
+  - `codex` is on PATH and passes: keep `"codexCmd": "codex"`.
+  - `codex` is missing, or fails because it is too old (e.g. `ERROR: ... model is not supported when using Codex with a ChatGPT account`, typical of an app-bundled `codex` that lags the account's default model): read the current version with `npx -y @openai/codex --version` and take the semver from its `codex-cli X.Y.Z` line, since npm may print warnings around it. Smoke-test the **pinned** `npx -y @openai/codex@X.Y.Z` itself, and if it passes, write exactly that command as `codexCmd`.
+  - `codex` fails for another reason, such as not logged in, network or rate limit: don't switch binaries. Set `"useCodex": false`, show the error, and tell the user to fix it (e.g. `codex login`) and re-run `/tackle-setup`.
+  - Nothing passes: set `"useCodex": false` and tell the user why (the Codex reviewer is skipped; the 3 model reviewers still run).
 - Confirm the file is valid JSON.
 - Tell the user setup is done and they can now run `/tackle-ticket <KEY>`.
 

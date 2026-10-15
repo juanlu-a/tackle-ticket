@@ -9,9 +9,9 @@ This is `/tackle-ticket` steps 5 and 6 on their own, for when there is no ticket
 branch you already wrote, someone else's PR, or a change that never had a ticket.
 
 Load config from `.claude/tackle-ticket.json` if it exists, for `reviewModels`, `reviewLoopCap`,
-`useCodex`, `terseMode`, `baseBranch`, `lintCmd` and `typecheckCmd`. **If it does not exist, do not
+`useCodex`, `codexCmd`, `terseMode`, `baseBranch`, `lintCmd` and `typecheckCmd`. **If it does not exist, do not
 stop** — unlike `/tackle-ticket`, this command works without config. Fall back to: `reviewModels`
-`["opus", "sonnet", "haiku"]`, `reviewLoopCap` 4, `useCodex` true, `terseMode` true, `baseBranch`
+`["opus", "sonnet", "haiku"]`, `reviewLoopCap` 4, `useCodex` true, `codexCmd` `codex`, `terseMode` true, `baseBranch`
 the repo's default branch, and detect lint/typecheck from `package.json` scripts (or skip them and
 say so).
 
@@ -53,21 +53,29 @@ are reached. If the cap is hit, list what remains instead of pretending it is cl
 - If `useCodex` is true, also run the Codex reviewer as a Bash call in the same turn:
 
   ```bash
-  codex exec -s read-only "Review this diff. Report findings only — do NOT edit files. Terse: one finding per line as [severity] file:line — problem. Fix: change. Severity = critical|major|minor|nit; output NO FINDINGS if clean.
+  rm -f <scratch>/codex-review.txt
+  {codexCmd} exec -s read-only --skip-git-repo-check -o <scratch>/codex-review.txt "Review this diff. Report findings only — do NOT edit files. Terse: one finding per line as [severity] file:line — problem. Fix: change. Severity = critical|major|minor|nit; output NO FINDINGS if clean.
 
   INTENT: <what the change should do>
   CONVENTIONS: <excerpt>
   DIFF:
-  <the diff>"
+  <the diff>" < /dev/null > <scratch>/codex-console.log 2>&1
   ```
 
-  If `codex` is not on PATH, skip it silently.
+  `{codexCmd}` is the config value (default `codex`). It can be a path or a full command, e.g.
+  `npx -y @openai/codex@<version>`, for when the `codex` on PATH is too old for the account. `<scratch>` is a
+  temp dir (the session scratchpad if there is one). `< /dev/null` matters: with stdin left open, `codex exec` waits on it and hangs until the timeout. The console goes to `codex-console.log`, not into context: it echoes the whole prompt and diff. On failure, show only its `ERROR:` lines or its last ~20 lines. The `rm -f` keeps a previous round's file from being read as this round's result.
+  Run it with a Bash `timeout` of 600000 ms: a first `npx` run downloads the package before it reviews.
+  - If `codexCmd` is exactly `codex` and that is not on PATH, skip Codex silently (the model reviewers still run).
+  - Read the review from the `-o` file, **not** the console: Codex echoes the prompt (which itself contains `NO FINDINGS` and the finding format), so the console always looks like a review. The console log is only for showing errors.
+  - Codex **failed** if it exits non-zero, times out, the command is not found, or the `-o` file is missing, empty, or has neither finding lines nor `NO FINDINGS`. An `ERROR:` line on the console is not a failure on its own, because Codex also logs non-fatal ones (e.g. an MCP server that didn't start) and still reviews.
+  - On failure: do not retry, in this round or later ones; drop Codex for the rest of the loop. Show the error line in the synthesis and suggest re-running `/tackle-setup` to re-detect `codexCmd` (a pinned CLI can fall behind the account's default model). Never call a round clean without saying Codex didn't run.
 
 All reviewers are **report-only** and output in terse-mode style.
 
 **2b. Synthesize:**
 
-Dedupe (same file:line + same issue) and rank by severity. List the deduped findings to the user,
+If Codex was dropped, say so and show its error. Dedupe (same file:line + same issue) and rank by severity. List the deduped findings to the user,
 terse. When reviewers disagree, say so rather than silently picking one — a split verdict is
 information.
 

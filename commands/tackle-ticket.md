@@ -61,19 +61,25 @@ Repeat the following round until a round produces **no `critical` and no `major`
 - For each model in `reviewModels` (default `opus`, `sonnet`, `haiku`), spawn a `ticket-reviewer` subagent via the Agent tool with `subagent_type: "ticket-reviewer"` and `model:` set to that model. Pass the review context in the prompt. (Do NOT use `subagent_type: "fork"` — it ignores the model override.)
 - If `useCodex` is true, also run the Codex reviewer as a Bash call in the same turn:
   ```bash
-  codex exec -s read-only "Review this diff for a ticket. Report findings only — do NOT edit files. Terse: one finding per line as [severity] file:line — problem. Fix: change. Severity = critical|major|minor|nit; output NO FINDINGS if clean.
+  rm -f <scratch>/codex-review.txt
+  {codexCmd} exec -s read-only --skip-git-repo-check -o <scratch>/codex-review.txt "Review this diff for a ticket. Report findings only — do NOT edit files. Terse: one finding per line as [severity] file:line — problem. Fix: change. Severity = critical|major|minor|nit; output NO FINDINGS if clean.
 
   TICKET: <key + summary + acceptance criteria>
   CONVENTIONS: <excerpt>
   DIFF:
-  $(git diff <baseBranch>...HEAD)"
+  $(git diff <baseBranch>...HEAD)" < /dev/null > <scratch>/codex-console.log 2>&1
   ```
-  If `codex` is not on PATH, skip it silently (the model reviewers still run).
+  `{codexCmd}` is the config value (default `codex`). It can be a path or a full command, e.g. `npx -y @openai/codex@<version>`, for when the `codex` on PATH is too old for the account. `<scratch>` is a temp dir (the session scratchpad if there is one). `< /dev/null` matters: with stdin left open, `codex exec` waits on it and hangs until the timeout. The console goes to `codex-console.log`, not into context: it echoes the whole prompt and diff. On failure, show only its `ERROR:` lines or its last ~20 lines. The `rm -f` keeps a previous round's file from being read as this round's result.
+  Run it with a Bash `timeout` of 600000 ms: a first `npx` run downloads the package before it reviews.
+  - If `codexCmd` is exactly `codex` and that is not on PATH, skip Codex silently (the model reviewers still run).
+  - Read the review from the `-o` file, **not** the console: Codex echoes the prompt (which itself contains `NO FINDINGS` and the finding format), so the console always looks like a review. The console log is only for showing errors.
+  - Codex **failed** if it exits non-zero, times out, the command is not found, or the `-o` file is missing, empty, or has neither finding lines nor `NO FINDINGS`. An `ERROR:` line on the console is not a failure on its own, because Codex also logs non-fatal ones (e.g. an MCP server that didn't start) and still reviews.
+  - On failure: do not retry, in this round or later ones; drop Codex for the rest of the loop. Show the error line in the synthesis and suggest re-running `/tackle-setup` to re-detect `codexCmd` (a pinned CLI can fall behind the account's default model). Never call a round clean without saying Codex didn't run.
 
 All reviewers are **report-only** and output in terse-mode style.
 
 **5c. Synthesize:**
-- Collect the 4 reviewers' findings. Dedupe (same file:line + same issue). Rank by severity.
+- Collect the findings of the reviewers that ran. If Codex was dropped, say so and show its error. Dedupe (same file:line + same issue). Rank by severity.
 - Briefly list the deduped findings to the user (terse).
 
 **5d. Apply corrections:**
